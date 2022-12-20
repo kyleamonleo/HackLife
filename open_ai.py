@@ -29,7 +29,8 @@ def DaVincibot(text):
         text = d.get("text")
 
     
-    print(text)
+    # print(text)
+    return text
     
         
     

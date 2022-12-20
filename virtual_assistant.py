@@ -36,7 +36,7 @@ def listen():
     # Print the recognized text
         recogText = r.recognize_google(audio)
         print(recogText)
-        speak("you said: "+recogText)
+        # speak("you said: "+recogText)
     except sr.UnknownValueError:
     # If the speech is unrecognizable, print an error message
         speak("This is jarvy, Sorry, I could not understand what you said.")
@@ -46,4 +46,7 @@ def listen():
         speak("This is jarvy, Sorry, there was an error with the speech recognition service.")        
         print("Sorry, there was an error with the speech recognition service: {0}".format(e))
 
-listen()
+
+        return recogText
+
+# listen()
