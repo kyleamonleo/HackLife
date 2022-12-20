@@ -46,7 +46,7 @@ def listen():
         speak("This is jarvy, Sorry, there was an error with the speech recognition service.")        
         print("Sorry, there was an error with the speech recognition service: {0}".format(e))
 
-
-        return recogText
+    print("received")
+    return recogText
 
 # listen()

@@ -4,9 +4,10 @@ from virtual_assistant import speak, listen
 def main():
     print("Start")
     
-    command = listen()
-    vini = DaVincibot(command)
+    
+    vini = DaVincibot(listen())
     speak(vini)
+    speak("BREAK! Let me know if you need anything else, see you later")
 
 
     

@@ -18,7 +18,7 @@ def DaVincibot(text):
 
     # print(response.get("choices"))
 
-    text = ""
+    vinReply = ""
 
     for i in range(len(response.get("choices"))):
         
@@ -26,11 +26,11 @@ def DaVincibot(text):
         
         d =dict(jsonArray)
         
-        text = d.get("text")
+        vinReply = d.get("text")
 
     
-    # print(text)
-    return text
+    print(vinReply)
+    return vinReply
     
         
     
