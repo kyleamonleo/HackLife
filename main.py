@@ -3,6 +3,7 @@ from virtual_assistant import speak, listen
 
 def main():
     print("Start")
+    speak("Welcome I am jarvy, my creator kyle amon has given me many capabilities please feel free to get involved.")
     
     
     vini = DaVincibot(listen())
