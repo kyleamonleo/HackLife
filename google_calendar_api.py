@@ -14,7 +14,7 @@ from googleapiclient.errors import HttpError
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september","october", "november", "december"]
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-DAY_EXT = ["rd","th","st"]
+DAY_EXT = ["rd","th","st","nd"]
 
 
 # If modifying these scopes, delete the file token.json.
@@ -81,8 +81,9 @@ def get_date(text):
     month = -1
     year = today.year
 
+    words = text.split()
 
-    for word in text.split():
+    for i, word in enumerate(words):
         if word in MONTHS:
             month = MONTHS.index(word)+1
 
@@ -99,6 +100,27 @@ def get_date(text):
                     except:
                         pass
 
+
+    # check if the word next (indicating the future)
+
+        if word == "next" and i < len(words)-1:
+            if words[i+1] in DAYS:
+                day_of_week = DAYS.index(words[i+1])
+                day_of_week += 7
+
+            elif words[i+1] in MONTHS:
+                month = MONTHS.index(words[i+1]) +1
+                if month <= today.month:
+                    year += 1
+            elif words[i+1].isdigit():
+                day = int(words[i+1])
+                if month == today.month and day < today.day:
+                    month += 1
+                    if month > 12:
+                        month =1
+                        year += 1
+            
+    
     if month < today.month and month != -1:
         year = year +1
 

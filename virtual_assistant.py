@@ -1,8 +1,10 @@
 import os 
 import time 
-import playsound
+# import playsound
+import pyttsx3
 import speech_recognition as sr
 import gtts 
+
 num =0
 
 
@@ -13,14 +15,24 @@ save mp3 file in audio folder
 '''
 def speak(text):
     global num
-    tts = gtts.gTTS(lang="en", text=text)
+    engine = pyttsx3.init()
+    voices = engine.getProperty('voices')
+    
+    engine.setProperty("voice", voices[25].id)
+
+
+    engine.setProperty('rate', 97)
+    engine.say(text)
+    engine.runAndWait()
+
+    # tts = gtts.gTTS(lang="en", text=text)
     
     num =+ 1
-    tts.save(f"./audio/voice{num}.mp3")
-    filename = f"./audio/voice{num}.mp3"
-    playsound.playsound(filename)
+    # tts.save(f"./audio/voice{num}.mp3")
+    # filename = f"./audio/voice{num}.mp3"
+    # playsound.playsound(filename)
 
-# speak("hello hello this is what im talking about the company")
+# speak("hello hello this is what im talking about")
 '''
 function to make listen for commands
 '''
@@ -53,4 +65,3 @@ def listen():
     print("received")
     return recogText
 
-# listen()
