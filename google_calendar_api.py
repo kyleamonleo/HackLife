@@ -8,7 +8,10 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import pytz
 
+
+import virtual_assistant 
 
 
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -35,7 +38,7 @@ def authenticate_google():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                '/home/kyle/sideProjects/python/virtualAssistant/HackLife/credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
@@ -46,26 +49,47 @@ def authenticate_google():
 
     return service
 
-def get_events(n, service):
 
+
+
+
+def get_events(day, service):
+
+    date = datetime.datetime.combine(day, datetime.datetime.min.time())
+    end_date = datetime.datetime.combine(day, datetime.datetime.max.time())
+    utc = pytz.UTC
+    date = date.astimezone(utc)
+    end_date = end_date.astimezone(utc)
 
     # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-    print(f'Getting the upcoming {n} events')
-    events_result = service.events().list(calendarId='primary', timeMin=now,
-                                    maxResults=n, singleEvents=True,
+    # now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    # print(f'Getting the upcoming {n} events')
+    events_result = service.events().list(calendarId='primary', timeMin=date.isoformat(), timeMax=end_date.isoformat(),
+                                    singleEvents=True,
                                     orderBy='startTime').execute()
     
     events = events_result.get('items', [])
 
     if not events:
-        print('No upcoming events found.')
+        virtual_assistant.speak('No upcoming events found.')
+    
+    else:
+        virtual_assistant.speak(f"you have {len(events)} events on this day")
+
 
         # Prints the start and name of the next 10 events
-    for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
+        for event in events:
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            print(start, event['summary'])
+            
+            start_time = str((start.split("T")[1]).split("-")[0])
+            if int(start_time.split(":")[0]) < 12:
+                start_time = start_time + "am"
+            else:
+                start_time = str(int(start_time.split(":")[0])-12)
+                start_time = start_time+"pm"
 
+            virtual_assistant.speak(event["summary"])+" at "+ start_time
 
 
 
@@ -138,6 +162,24 @@ def get_date(text):
                 dif += 7
 
         return today + datetime.timedelta(dif)
+    
+    if month == -1 or day == -1:
+        return None
 
     return datetime.date(month=month, day=day, year=year)
 
+
+# CALENDAR_CALLS = {"jarvy, what do i have", "jarvy, calendar check"}
+# text = virtual_assistant.listen()
+# for p in CALENDAR_CALLS:
+#     if p in text.lower():
+#         d = print(get_date(text))
+#         if d:
+#             get_events(d, authenticate_google())
+#         else:
+#             virtual_assistant.speak("something with day and events is wonky")
+
+s = authenticate_google()
+# t=virtual_assistant.listen()
+d = get_date("next friday")
+get_events(d,s)
