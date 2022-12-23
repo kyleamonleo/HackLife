@@ -13,8 +13,9 @@ import pytz
 
 import virtual_assistant 
 
+# https://www.googleapis.com/auth/calendar
 
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES = ['https://www.googleapis.com/auth/calendar']
 MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september","october", "november", "december"]
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 DAY_EXT = ["rd","th","st","nd"]
@@ -86,7 +87,7 @@ def get_events(day, service):
             if int(start_time.split(":")[0]) < 12:
                 start_time = start_time + "am"
             else:
-                start_time = str(int(start_time.split(":")[0])-12)
+                start_time = str(int(start_time.split(":")[0])-12) + start_time.split(":")[1]
                 start_time = start_time+"pm"
 
             virtual_assistant.speak(event["summary"])+" at "+ start_time
@@ -105,6 +106,10 @@ def get_date(text):
     month = -1
     year = today.year
 
+    hour = -1
+    minute = -1
+    am_pm = "am"
+
     words = text.split()
 
     for i, word in enumerate(words):
@@ -113,8 +118,18 @@ def get_date(text):
 
         elif word in DAYS:
             day_of_week = DAYS.index(word)
+        
         elif word.isdigit():
-            day = int(word)
+            if hour == -1:
+                hour = int(word)
+            else:
+                minute = int(word)
+
+            # day = int(word)
+        
+        elif word == "am" or word == "pm":
+            am_pm = word        
+
         else:
             for ext in DAY_EXT:
                 found = word.find(ext)
@@ -126,6 +141,9 @@ def get_date(text):
 
 
     # check if the word next (indicating the future)
+
+
+
 
         if word == "next" and i < len(words)-1:
             if words[i+1] in DAYS:
@@ -143,6 +161,11 @@ def get_date(text):
                     if month > 12:
                         month =1
                         year += 1
+
+        
+        
+
+    
             
     
     if month < today.month and month != -1:
@@ -151,9 +174,12 @@ def get_date(text):
     if day< today.day and month == -1 and day != -1:
         month = month + 1
     
-    if month == -1 and day == -1 and day_of_week != -1:
-        current_day_of_week = today.weekday()
+    
+    # if we have a day in the week, use that determine the date
 
+    # if month == -1 and day == -1 and day_of_week != -1:
+    if day_of_week > -1:
+        current_day_of_week = today.weekday()
         dif = day_of_week - current_day_of_week
 
         if dif <0 : 
@@ -163,11 +189,50 @@ def get_date(text):
 
         return today + datetime.timedelta(dif)
     
-    if month == -1 or day == -1:
-        return None
+    
+    # if we dont have a day of the week, use the day and month we have
 
-    return datetime.date(month=month, day=day, year=year)
+    # if month == -1 or day == -1:
+        # return None
+    if day > -1 and month > -1:
+        if hour < 0:
+            hour = 0
+        if minute < 0:
+            minute = 0
+        
+        # adjust for PM
 
+        if am_pm == "pm":
+            if hour < 12:
+                hour += 12
+
+        return datetime.datetime(year, month,day, hour, minute)
+
+
+    return None
+
+def create_event(service, summary, location, start_time, end_time):
+    
+    event = {
+        'summary': summary,
+        'location': location,
+        'description': 'Created using the Google Calendar API',
+        'start': {
+            'dateTime': start_time,
+            'timeZone': 'UTC',
+        },
+        'end': {
+            'dateTime': end_time+30,
+            'timeZone': 'UTC',
+        },
+        'reminders': {
+            'useDefault': True
+        },
+    }
+
+    event = service.events().insert(calendarId='primary', body=event).execute()
+
+    print(f"Event created: {event.get('htmlLink')}")
 
 # CALENDAR_CALLS = {"jarvy, what do i have", "jarvy, calendar check"}
 # text = virtual_assistant.listen()
@@ -179,7 +244,7 @@ def get_date(text):
 #         else:
 #             virtual_assistant.speak("something with day and events is wonky")
 
-s = authenticate_google()
-# t=virtual_assistant.listen()
-d = get_date("next friday")
-get_events(d,s)
+# s = authenticate_google()
+# # t=virtual_assistant.listen()
+# d = get_date("next friday")
+# get_events(d,s)
