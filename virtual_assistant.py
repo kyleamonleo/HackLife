@@ -37,6 +37,7 @@ def speak(text):
 function to make listen for commands
 '''
 def listen():
+    print("listening")
     # print("start")
     r = sr.Recognizer()
 
@@ -49,6 +50,7 @@ def listen():
     # Print the recognized text
         recogText = r.recognize_google(audio)
         print(recogText)
+        speak('done')
         # speak("you said: "+recogText)
     
     
@@ -56,6 +58,7 @@ def listen():
     # If the speech is unrecognizable, print an error message
         speak("Sorry, I could not understand what you said.")
         print("Sorry, I could not understand what you said.")
+        
     
     
     except sr.RequestError as e:

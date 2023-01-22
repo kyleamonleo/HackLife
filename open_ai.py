@@ -29,7 +29,7 @@ def DaVincibot(text):
         vinReply = d.get("text")
 
     
-    print(vinReply)
+    # print(vinReply)
     return vinReply
     
         

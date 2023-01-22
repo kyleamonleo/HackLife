@@ -39,7 +39,7 @@ def authenticate_google():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                '/home/kyle/sideProjects/python/virtualAssistant/HackLife/credentials.json', SCOPES)
+                'credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
@@ -75,7 +75,7 @@ def get_events(day, service):
         virtual_assistant.speak('No upcoming events found.')
     
     else:
-        virtual_assistant.speak(f"you have {len(events)} events on this day")
+        virtual_assistant.speak(f"you have {len(events)} events on this day. Collecting events")
 
 
         # Prints the start and name of the next 10 events
@@ -84,19 +84,26 @@ def get_events(day, service):
             print(start, event['summary'])
             
             start_time = str((start.split("T")[1]).split("-")[0])
+
+            end_time = str((start.split("T")[1]).split("-")[1])
+            
+
+
             if int(start_time.split(":")[0]) < 12:
                 start_time = start_time + "am"
             else:
                 start_time = str(int(start_time.split(":")[0])-12) + start_time.split(":")[1]
                 start_time = start_time+"pm"
 
-            virtual_assistant.speak(event["summary"])+" at "+ start_time
+            virtual_assistant.speak(f'{event["summary"]}" at "{start_time}" to "{end_time}')
 
 
 
 def get_date(text):
     text = text.lower()
     today = datetime.date.today()
+    
+    print(today)
 
     if text.count("today") > 0:
         return today
@@ -208,31 +215,84 @@ def get_date(text):
 
         return datetime.datetime(year, month,day, hour, minute)
 
+        
 
-    return None
+
+    return today
+
+
+
+
+
 
 def create_event(service, summary, location, start_time, end_time):
     
+# 2015-05-28T09:00:00-07:00
+
+#     d=get_date('next friday')
+# # print(d)
+# print(datetime.datetime.combine(d,datetime.datetime.min.time()).isoformat('T', 'seconds'))
+
+
+    s = datetime.datetime.combine(start_time,datetime.datetime.min.time()).isoformat('T', 'seconds')
+    e = datetime.datetime.combine(end_time,datetime.datetime.max.time()).isoformat('T', 'seconds')
     event = {
-        'summary': summary,
-        'location': location,
-        'description': 'Created using the Google Calendar API',
-        'start': {
-            'dateTime': start_time,
-            'timeZone': 'UTC',
-        },
-        'end': {
-            'dateTime': end_time+30,
-            'timeZone': 'UTC',
-        },
-        'reminders': {
-            'useDefault': True
-        },
+    'summary': 'virtual assistant ling',
+    'location': location,
+    'description': summary,
+    
+    'start': 
+    {
+        'dateTime': s,
+        'timeZone': 'UTC',
+    },
+
+    # '2015-05-28T17:00:00-07:00'
+    'end': {
+        'dateTime': e,
+        'timeZone': 'UTC',
+    },
+    
+    'recurrence': [
+        'RRULE:FREQ=DAILY;COUNT=2'
+    ],
+    'attendees': [
+        {'email': 'test1@example.com'},
+        {'email': 'test2@example.com'},
+    ],
+    'reminders': {
+        'useDefault': False,
+        'overrides': [
+        {'method': 'email', 'minutes': 24 * 60},
+        {'method': 'popup', 'minutes': 10},
+        ],
+    },
     }
+
+
+    # event = {
+    #     'summary': 'Virtual Assistant Ling',
+    #     'location': location,
+    #     'description': summary,
+    #     'start': {
+    #         'dateTime': start_time,
+    #         'timeZone': 'UTC',
+    #     },
+    #     'end': {
+    #         'dateTime': end_time,
+    #         'timeZone': 'UTC',
+    #     },
+    #     'reminders': {
+    #         'useDefault': True
+    #     },
+    # }
 
     event = service.events().insert(calendarId='primary', body=event).execute()
 
-    print(f"Event created: {event.get('htmlLink')}")
+    # print(f"Event created: {event.get('htmlLink')}")
+    print('Event created: %s' % (event.get('htmlLink')))
+
+
 
 # CALENDAR_CALLS = {"jarvy, what do i have", "jarvy, calendar check"}
 # text = virtual_assistant.listen()
